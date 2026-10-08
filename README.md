@@ -48,8 +48,6 @@ I would not store sensitive authentication tokens in `UserDefaults`.
 
 4. **Monitoring:** Use Crashlytics and analytics to monitor crashes, performance, and important user flows.
 
-5. **Image/CDN support:** If courses contain images or videos, use a CDN and proper image/media caching.
-
 ## 5. Second Platform
 
 ### Explain briefly how you would implement it on Android.

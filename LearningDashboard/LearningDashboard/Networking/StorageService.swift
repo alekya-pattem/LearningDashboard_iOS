@@ -1,16 +1,22 @@
 import CoreData
 
-class StorageService {
+protocol StorageServiceProtocol {
+    func saveCourses(_ courses: [Course])
+    func getCourses() -> [Course]
+    func updateLessonCompletion(courseId: Int, lessonId: Int, isCompleted: Bool)
+}
+
+class StorageService: StorageServiceProtocol {
     let context = CoreDataStack.shared.context
     
     func saveCourses(_ courses: [Course]) {
-        // Fetch existing courses to retain local progress
+        // Fetch existing courses to retain local progress (both completed AND pending states)
         let existingCourses = getCourses()
-        var completedLessonIds = Set<Int>()
+        var localLessonStates = [Int: Bool]()
         for course in existingCourses {
             for lesson in course.lessons ?? [] {
-                if lesson.isCompleted == true, let id = lesson.id {
-                    completedLessonIds.insert(id)
+                if let id = lesson.id {
+                    localLessonStates[id] = lesson.isCompleted ?? false
                 }
             }
         }
@@ -34,15 +40,15 @@ class StorageService {
                 lessonEntity.id = Int64(lesson.id ?? 0)
                 lessonEntity.title = lesson.title ?? ""
                 
-                // Retain local completion status if it exists
-                if let id = lesson.id, completedLessonIds.contains(id) {
-                    lessonEntity.isCompleted = true
-                    completedCount += 1
+                // Override network data with local state if it exists, otherwise trust network
+                if let id = lesson.id, let localState = localLessonStates[id] {
+                    lessonEntity.isCompleted = localState
                 } else {
                     lessonEntity.isCompleted = lesson.isCompleted ?? false
-                    if lessonEntity.isCompleted {
-                        completedCount += 1
-                    }
+                }
+                
+                if lessonEntity.isCompleted {
+                    completedCount += 1
                 }
                 
                 lessonEntity.course = entity

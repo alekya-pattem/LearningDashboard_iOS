@@ -43,14 +43,12 @@ class CourseDashboardViewModel: ObservableObject {
                 state = .loaded
             }
         } catch {
-            // keep old courses if refresh fails, show error maybe
             if self.courses.isEmpty {
                 state = .error("Failed to refresh.")
             }
         }
     }
     
-    // Call this when coming back from Details screen to refresh local data
     func reloadFromCache() {
         let cached = repository.storageService.getCourses()
         if !cached.isEmpty {

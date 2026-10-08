@@ -22,7 +22,6 @@ class CourseDetailsViewModel: ObservableObject {
             course.progress = Int((Double(completedCount ?? 0) / Double(lessons.count)) * 100)
         }
         
-        // Save to repository
         repository.updateLesson(courseId: course.id ?? 0, lessonId: lessonId, isCompleted: course.lessons?[index].isCompleted ?? false)
     }
 }

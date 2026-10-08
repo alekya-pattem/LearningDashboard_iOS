@@ -1,14 +1,17 @@
 import Foundation
 
-enum NetworkError: Error {
-    case invalidURL
-    case decodingError
-    case serverError
+protocol NetworkServiceProtocol {
+    func fetchCourses() async throws -> [Course]
 }
 
-class NetworkService {
+class NetworkService: NetworkServiceProtocol {
+    
     func fetchCourses() async throws -> [Course] {
-        // Simulate network delay
+        let isConnected = await NetworkMonitor.isConnectedToNetwork()
+        if !isConnected {
+            throw NetworkError.offline
+        }
+        
         try await Task.sleep(nanoseconds: 1_500_000_000)
         
         let jsonString = """
@@ -51,13 +54,18 @@ class NetworkService {
         ]
         """
         
+        return try JSONParser.decode([Course].self, from: jsonString)
+    }
+}
+
+struct JSONParser {
+    static func decode<T: Decodable>(_ type: T.Type, from jsonString: String) throws -> T {
         guard let data = jsonString.data(using: .utf8) else {
             throw NetworkError.decodingError
         }
         
         do {
-            let courses = try JSONDecoder().decode([Course].self, from: data)
-            return courses
+            return try JSONDecoder().decode(T.self, from: data)
         } catch {
             throw NetworkError.decodingError
         }

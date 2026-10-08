@@ -1,14 +1,19 @@
 import Foundation
 
 class CourseRepository {
-    let networkService = NetworkService()
-    let storageService = StorageService()
+    let networkService: NetworkServiceProtocol
+    let storageService: StorageServiceProtocol
+    
+    init(networkService: NetworkServiceProtocol = NetworkService(),
+         storageService: StorageServiceProtocol = StorageService()) {
+        self.networkService = networkService
+        self.storageService = storageService
+    }
     
     func fetchCourses() async throws -> [Course] {
         do {
             let courses = try await networkService.fetchCourses()
             storageService.saveCourses(courses)
-            // Return the merged data from CoreData
             return storageService.getCourses()
         } catch {
             let cachedCourses = storageService.getCourses()
